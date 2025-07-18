@@ -10,12 +10,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { GithubIcon, Loader } from "lucide-react";
+import { GithubIcon, Loader, Loader2, Send } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
+  const router = useRouter();
   const [githubPending, startGithubTransition] = useTransition();
+  const [emailPending, startEmailTransition] = useTransition();
+  const [email, setEmail] = useState("");
 
   async function signInWithGithub() {
     startGithubTransition(async () => {
@@ -36,6 +41,25 @@ export function LoginForm() {
     });
   }
 
+  function signInWithEmail() {
+    startEmailTransition(async () => {
+      await authClient.emailOtp.sendVerificationOtp({
+        email: email,
+        type: "sign-in",
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Verification email sent!");
+            router.push(`/verify-request?email=${email}`);
+          },
+          onError: (error) => {
+            toast.error(
+              `Failed to send verification email: ${error.error.message}`
+            );
+          },
+        },
+      });
+    });
+  }
   return (
     <Card>
       <CardHeader>
@@ -73,9 +97,28 @@ export function LoginForm() {
         <div className="grid gap-3">
           <div className="grid gap-3">
             <Label htmlFor="email">Email</Label>
-            <Input type="email" id="email" placeholder="example@example.com" />
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              type="email"
+              id="email"
+              placeholder="example@example.com"
+            />
           </div>
-          <Button>Continue With Email</Button>
+          <Button onClick={signInWithEmail} disabled={emailPending}>
+            {emailPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Loading...</span>
+              </>
+            ) : (
+              <>
+                <Send className="size-4" />
+                <span>Continue With Email</span>
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
