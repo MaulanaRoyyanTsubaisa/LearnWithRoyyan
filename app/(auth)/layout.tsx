@@ -9,7 +9,7 @@ import Logo from "@/public/logo.png";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-svh flex-col items-center justify-center">
+    <div className="gap-3 relative flex min-h-svh flex-col items-center justify-center">
       <Link
         href="/"
         className={buttonVariants({
